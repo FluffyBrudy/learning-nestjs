@@ -4,6 +4,11 @@ import { LoggerModule } from 'nestjs-pino';
 import { pinoLoggerConfig } from './pino.logger.config';
 
 @Module({
-  imports: [YoutubeModule, LoggerModule.forRoot(pinoLoggerConfig)],
+  imports: [
+    YoutubeModule,
+    ...(process.env.NODE_ENV === 'dev'
+      ? [LoggerModule.forRoot(pinoLoggerConfig)]
+      : []),
+  ],
 })
 export class AppModule {}

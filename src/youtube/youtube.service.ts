@@ -6,7 +6,7 @@ import {
   TFailureResponse,
   TResponse,
   TSuccessResponse,
-} from 'src/types/shared.types';
+} from '../types/shared.types';
 import { YoutubeFilters } from './constants';
 
 type TYoutubeFilter = (typeof YoutubeFilters)[number];
