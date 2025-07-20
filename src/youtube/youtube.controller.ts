@@ -22,6 +22,7 @@ import {
 } from './constants';
 import { Request, Response } from 'express';
 import { constructUrl } from '../common/url.utils';
+import { stream } from 'play-dl';
 
 @Controller(YOUTUBE_ROOT_GET.url)
 export class YoutubeController {
@@ -54,16 +55,26 @@ export class YoutubeController {
   }
 
   @Get(STREAM_VIDEO_POST.url)
-  streamALternative(@Query('url') url: string, res: Response) {
-    if (!url) throw new BadRequestException('required url');
-    const { data, error } = this.youtubeService.getStreams(url);
-    if (error) {
-      throw new InternalServerErrorException(error);
-    } else {
+  async streamALternative(@Query('url') url: string, @Res() res: Response) {
+    if (!url) throw new BadRequestException('URL is required');
+
+    try {
+      // Use play-dl to get stream
+      const streamInfo = await stream(url, { quality: 2 }); // quality 2 = medium
+      const stream_ = streamInfo.stream;
+
+      // Set headers for streaming
       res.set({
         'Content-Type': 'video/mp4',
+        'Transfer-Encoding': 'chunked',
+        'Content-Disposition': 'inline',
       });
-      data.pipe(res);
+
+      // Pipe the stream
+      stream_.pipe(res);
+    } catch (error) {
+      console.error('play-dl error:', error);
+      throw new InternalServerErrorException('Failed to stream video');
     }
   }
 
