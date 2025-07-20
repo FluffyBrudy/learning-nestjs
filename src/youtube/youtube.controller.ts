@@ -53,6 +53,20 @@ export class YoutubeController {
     }
   }
 
+  @Get(STREAM_VIDEO_POST.url)
+  streamALternative(@Query('url') url: string, res: Response) {
+    if (!url) throw new BadRequestException('required url');
+    const { data, error } = this.youtubeService.getStreams(url);
+    if (error) {
+      throw new InternalServerErrorException(error);
+    } else {
+      res.set({
+        'Content-Type': 'video/mp4',
+      });
+      data.pipe(res);
+    }
+  }
+
   @Get(SEARCH_VIDEO_GET.url)
   async searchVideo(@Query() query: YoutubeSearchRequestDto) {
     const { data, error } = await this.youtubeService.searchVideo(query.query);
