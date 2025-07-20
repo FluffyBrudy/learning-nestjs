@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -44,6 +45,20 @@ export class YoutubeController {
     const { data, error } = this.youtubeService.getStreams(body.url);
     if (error) {
       res.status(500).json({ error });
+    } else {
+      res.set({
+        'Content-Type': 'video/mp4',
+      });
+      data.pipe(res);
+    }
+  }
+
+  @Get(STREAM_VIDEO_POST.url)
+  streamALternative(@Query('url') url: string, res: Response) {
+    if (!url) throw new BadRequestException('required url');
+    const { data, error } = this.youtubeService.getStreams(url);
+    if (error) {
+      throw new InternalServerErrorException(error);
     } else {
       res.set({
         'Content-Type': 'video/mp4',
