@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as ytdl from '@distube/ytdl-core';
+import ytdl from '@distube/ytdl-core';
 import { search as ytSearch } from 'play-dl';
 import { Readable } from 'stream';
 import {
