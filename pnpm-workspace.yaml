@@ -1,5 +1,0 @@
-ignoredBuiltDependencies:
-  - '@nestjs/core'
-  - es5-ext
-  - nestjs-pino
-  - youtube-dl-exec
