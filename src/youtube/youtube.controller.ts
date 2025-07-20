@@ -20,7 +20,7 @@ import {
   YOUTUBE_ROOT_GET,
 } from './constants';
 import { Request, Response } from 'express';
-import { constructUrl } from 'src/common/url.utils';
+import { constructUrl } from '../common/url.utils';
 
 @Controller(YOUTUBE_ROOT_GET.url)
 export class YoutubeController {
