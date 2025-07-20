@@ -13,7 +13,6 @@ export const pinoLoggerConfig: Params = {
       req: (req) => ({ method: req.method, url: req.url }),
       res: (res: Response) => ({
         statusCode: res.statusCode,
-        error: res.statusMessage,
       }),
       err: (err) => ({ message: err.message, stack: err.stack }),
     },
