@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import ytdl from '@distube/ytdl-core';
+import { getInfo, getURLVideoID, videoFormat } from '@distube/ytdl-core';
 import { search as ytSearch } from 'play-dl';
-import { Readable } from 'stream';
 import {
   TFailureResponse,
   TResponse,
@@ -13,17 +12,27 @@ type TYoutubeFilter = (typeof YoutubeFilters)[number];
 
 @Injectable()
 export class YoutubeService {
-  getStreams(watchUrl: string): TResponse<Readable> {
+  async getDownloadInfo(url: string): Promise<
+    TResponse<{
+      embadeUrl: string;
+      formats: videoFormat[];
+    }>
+  > {
     try {
-      const res = ytdl(watchUrl, { quality: 'highest' });
+      const videoId = getURLVideoID(url);
+      const info = await getInfo(url);
+      const data = {
+        embadeUrl: 'https://www.youtube.com/embed/' + videoId,
+        formats: info.formats,
+      };
       return {
-        data: res,
+        data,
         error: null,
       };
-    } catch (err) {
+    } catch (error) {
       return {
         data: null,
-        error: (err as Error)?.message || 'something went wrong',
+        error: (error as Error).message || 'something went wrong',
       };
     }
   }

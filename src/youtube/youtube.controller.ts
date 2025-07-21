@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,78 +6,37 @@ import {
   Post,
   Query,
   Req,
-  Res,
 } from '@nestjs/common';
 import { YoutubeService } from './youtube.service';
 import {
   YoutubeSearchRequestDto,
   YoutubeVideoRequestDto,
 } from './dto/youtube.dto';
-import {
-  ALL_ROUTES,
-  SEARCH_VIDEO_GET,
-  STREAM_VIDEO_POST,
-  YOUTUBE_ROOT_GET,
-} from './constants';
-import { Request, Response } from 'express';
-import { constructUrl } from '../common/url.utils';
-import { stream } from 'play-dl';
+import { YOUTUBE_ROUTES } from './constants';
+import { Request } from 'express';
+import { constructUrlFromRouteDefination } from '../common/route.utils';
 
-@Controller(YOUTUBE_ROOT_GET.url)
+@Controller(YOUTUBE_ROUTES.route.url)
 export class YoutubeController {
   constructor(private readonly youtubeService: YoutubeService) {}
 
   @Get()
   root(@Req() req: Request) {
+    const protocol = req.protocol;
+    const host = req.get('host');
     return {
-      data: ALL_ROUTES.map((route) => ({
-        url: constructUrl(req, route.url),
-        method: route.method,
-      })),
+      data: constructUrlFromRouteDefination(protocol, host, YOUTUBE_ROUTES),
     };
   }
 
-  @Post(STREAM_VIDEO_POST.url)
-  streamAndDownload(
-    @Body() body: YoutubeVideoRequestDto,
-    @Res() res: Response,
-  ) {
-    const { data, error } = this.youtubeService.getStreams(body.url);
-    if (error) {
-      res.status(500).json({ error });
-    } else {
-      res.set({
-        'Content-Type': 'video/mp4',
-      });
-      data.pipe(res);
-    }
+  @Post(YOUTUBE_ROUTES.route.subroute.video.downloadInfo.url)
+  async downloadVideo(@Body() body: YoutubeVideoRequestDto) {
+    const { data, error } = await this.youtubeService.getDownloadInfo(body.url);
+    if (error) throw new InternalServerErrorException(error);
+    return { data };
   }
 
-  @Get(STREAM_VIDEO_POST.url)
-  async streamALternative(@Query('url') url: string, @Res() res: Response) {
-    if (!url) throw new BadRequestException('URL is required');
-
-    try {
-      // Use play-dl to get stream
-      const streamInfo = await stream(url, { quality: 2 }); // quality 2 = medium
-      const stream_ = streamInfo.stream;
-
-      // Set headers for streaming
-      res.set({
-        'Content-Type': 'video/mp4',
-        'Transfer-Encoding': 'chunked',
-        'Content-Disposition': 'inline',
-      });
-
-      // Pipe the stream
-      stream_.pipe(res);
-    } catch (error) {
-      console.error('play-dl error:', error);
-      throw new InternalServerErrorException('Failed to stream video');
-    }
-  }
-
-  @Get(SEARCH_VIDEO_GET.url)
+  @Get(YOUTUBE_ROUTES.route.subroute.video.search.url)
   async searchVideo(@Query() query: YoutubeSearchRequestDto) {
     const { data, error } = await this.youtubeService.searchVideo(query.query);
     if (error) throw new InternalServerErrorException(error);
